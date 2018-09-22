@@ -16,10 +16,9 @@ from numba import cuda
 CWD_PATH = os.getcwd()
 
 # Path to frozen detection graph. This is the actual model that is used for the object detection.
-MODEL_NAME = '20180408-102900.pb'
-MODEL_DIR = '/media/abhinav/DATA/fromUbuntu/extra/yamaha/FR_Tensorflow'
+MODEL_NAME = 'FACE DETECTION MODEL PB FILENAME'
+MODEL_DIR = 'ENTER PB FILE DIR HERE'
 PATH_TO_CKPT = os.path.join(MODEL_DIR, MODEL_NAME)
-
 
 def detect_objects(image_np, sess, detection_graph):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
@@ -68,8 +67,7 @@ def worker(input_q, output_q):
     while True:
         fps.update()
         frame = input_q.get()
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        # output_q.put(detect_objects(frame_rgb, sess, detection_graph))
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)        
         face_patches, padded_bounding_boxes, landmarks = detect_and_align.detect_faces(frame_rgb, mtcnn)
         output = dict(face_boxes=padded_bounding_boxes)
         output_q.put(output)
@@ -87,7 +85,15 @@ if __name__ == '__main__':
                         default=1920, help='Width of the frames in the video stream.')   #480
     parser.add_argument('-ht', '--height', dest='height', type=int, 
                         default=1080, help='Height of the frames in the video stream.') #360
+    parser.add_argument('-model', '--path_to_model', dest='model_path', type=str, 
+                        default='20180408-102900.pb', help='Path to FaceNet Model')
+
     args = parser.parse_args()    
+    PATH_TO_CKPT = args.model_path
+
+    if not os.path.exists(PATH_TO_CKPT):
+        print("Model file not found. Enter values to MODEL_NAME, MODEL_DIR")
+        sys.exit(1)
 
     input_q = Queue(5)  # fps is better if queue is higher but then more lags
     output_q = Queue()
@@ -97,14 +103,11 @@ if __name__ == '__main__':
         t.start()
 
     video_capture = WebcamVideoStream(src=args.video_source, width=args.width, height=args.height).start()    
-
     fps = FPS().start()
     frame_count = 0
-    frame_time = 0.
-    start_time = time.time()
+    
     while True:
-        frame_count += 1
-        t = time.time()
+        frame_count += 1        
         frame = video_capture.read()        
         if frame_count % 5 == 0:            
             input_q.put(frame)        
@@ -117,28 +120,13 @@ if __name__ == '__main__':
             face_boxes = data['face_boxes']
 
             for bb in face_boxes:
-                cv2.rectangle(frame, (bb[0], bb[1]), (bb[2], bb[3]), (122, 244, 66), 4)            
-            end = time.time()
-            seconds = end - t    
-            frame_time += seconds
-            fps_num = int(float(frame_count) / frame_time)
-            cv2.putText(frame, 'fps:' + str(fps_num), (0, 100), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                cv2.rectangle(frame, (bb[0], bb[1]), (bb[2], bb[3]), (122, 244, 66), 4)                        
             cv2.imshow('Video', frame)
-
-        fps.update()
-
-        print('[INFO] elapsed time: {:.2f}'.format(time.time() - t))
-
+        fps.update()        
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     
-    fps.stop()
-    total_seconds = time.time() - start_time
-
-    _fps = int(float(frame_count) / float(total_seconds))
-
-    print('fps calculated: ' + str(_fps))
-
+    fps.stop()    
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
     print('[INFO] approx. FPS: {:.2f}'.format(fps.fps()))
 
