@@ -1,6 +1,7 @@
 # TensorflowFaceDetection
 
-Multithreading is used to speed up face detection using Tensorflow MTCNN model
+Multithreading is used to speed up face detection using Tensorflow MTCNN model            
+Observed > 40FPS for 1920 x 1080 webcam feed on 16GB CPU RAM and intel i7 processor
 
 ## Requirements
 1. Tensorflow > 1.0    			
@@ -17,8 +18,6 @@ Current script is made to run on CPU, to run on GPU comment line-2: `os.environ[
 
 Current script will resize frame width to 400 before passing to Face Detection session, if you want to change that then you have to make changes to the method *detect_faces* in *align* module
 
-## Test Results
-Observed > 40FPS for 1920 x 1080 webcam feed on 16GB CPU RAM and intel i7 processor
 
 
 
