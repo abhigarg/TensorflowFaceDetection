@@ -1,6 +1,6 @@
 # TensorflowFaceDetection
 
-## Multithreading is used to speed up face detection using Tensorflow MTCNN model
+Multithreading is used to speed up face detection using Tensorflow MTCNN model
 
 ## REQUIREMENTS
 1. Tensorflow > 1.0    			
